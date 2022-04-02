@@ -2,7 +2,9 @@ import os
 import csv
 import logging
 import time
+import sys
 
+from PyQt5.QtWidgets import *
 from datetime import datetime
 
 
@@ -14,6 +16,21 @@ logging.basicConfig(
     filemode="w",
 )
 logger = logging.getLogger()
+
+
+##############################################################################################
+# class Window(QWidget):
+#     def __init__(self):
+#         QWidget.__init__(self)
+#         layout = QGridLayout()
+#         self.setLayout(layout)
+#         button = QPushButton("START")
+#         button.clicked.connect(self.on_button_clicked)
+#         layout.addWidget(button, 0, 0)
+
+#     def on_button_clicked(self):
+#         welcome_screen()
+##############################################################################################
 
 
 def open_file(file):
@@ -32,6 +49,8 @@ def open_file(file):
 
     for row in csv.reader(datafile):
         data_list.append(row)
+    
+    datafile.close()
 
 
 def clear_screen():
@@ -105,7 +124,7 @@ def circuits():
                 print(f"Url: {row[8]}")
                 print()
 
-        input()
+        input("\n\nENTER")
 
     clear_screen()
     open_file("circuits.csv")
@@ -152,12 +171,20 @@ def constructors():
                 print(f"{'Nationality:':12} {row[3]}")
                 print(f"{'Url: ':12} {row[4]}")
                 print("-------------------------------------------------------------")
-        input()
+        input("\n\nENTER")
 
     def search_by_country():
-        print("\nEnter constructor nationality: ")
+        constructors_nationalities = sorted(set([row[3] for row in data_list]))
+        print("\nAll nationalities:\n")
+        print("+-----------------+")
+        for nationality in constructors_nationalities:
+            print(f"| {nationality:15} | ")
+        print("+-----------------+")
+
+        print("\nEnter constructor nationality from above table: ")
         choice = input("\n> ").lower()
         data_list.sort(key=lambda x: x[3])
+        
         for row in data_list:
             if choice in row[3].lower():
                 print("\n-------------------------------------------------------------")
@@ -165,7 +192,7 @@ def constructors():
                 print(f"{'Nationality:':12} {row[3]}")
                 print(f"{'Url: ':12} {row[4]}")
                 print("-------------------------------------------------------------")
-        input()
+        input("\n\nENTER")
 
     def print_by_name():
         names = set()
@@ -185,7 +212,7 @@ def constructors():
                     print(f"Name: {row[2]}")
                     print(f"Url: {row[4]}\n")
             print()
-        input()
+        input("\n\nENTER")
 
     def print_by_country():
         nationalities = set()
@@ -205,7 +232,7 @@ def constructors():
                     print(f"Name: {row[2]}")
                     print(f"Url: {row[4]}\n")
             print()
-        input()
+        input("\n\nENTER")
 
     # main loop for constructors module
     while True:
@@ -258,40 +285,75 @@ def qualifying():
 def races():
     open_file("races.csv")
 
+    # races in csv file aren't sorted by year, so it needs to be sorted it manually
+    data_list.sort(key=lambda x: x[5])
+
+    for row in data_list:
+        # convert date from string format to datetime, and use .date() to delete time (convert 2017-10-01 00:00:00 to 2017-10-01)
+        row[5] = datetime.strptime(row[5], "%Y-%m-%d").date()
+
+    # for row in data_list:
+    #     logging.debug(f"{row}")
+    # input()
+
+
+    # def print_race():
+    #     print("---------------------------------------------------------------")
+    #     print(f"{'Round: ':7} {row[2]}")
+    #     print(f"{'Name: ':7} {row[4]}")
+    #     print(f"{'Date: ':7} {row[5]}")
+    #     print(f"{'Time: ':7} {row[6]}")
+    #     print(f"{'Url: ':7} {row[7]}")
+
+
     def races_by_date():
         print("\nWhen do you want to start? (YYYY-MM-DD)")
         start_date = input("> ")
         print("\nWhen do you want to stop? (YYYY-MM-DD)")
         stop_date = input("> ")
+
         start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
         stop_date = datetime.strptime(stop_date, "%Y-%m-%d").date()
+        print()
 
         for row in data_list:
-            if row[1] >= start_date and row[1] <= stop_date:
-                print(f"Id: {row[0]}.")
-                print(f"Year: {row[1]}")
-                print(f"Round: {row[2]}")
-                print(f"Circuit Id: {row[3]}")
-                print(f"Name: {row[4]}")
+            if row[5] >= start_date and row[5] <= stop_date:
+                print("---------------------------------------------------------------")
+                print(f"{'Round: ':7} {row[2]}")
+                print(f"{'Name: ':7} {row[4]}")
+                print(f"{'Date: ':7} {row[5]}")
+                print(f"{'Time: ':7} {row[6]}")
+                print(f"{'Url: ':7} {row[7]}")
+        input("\n\nENTER")
 
-                # convert date from string format to datetime, and use .date() to delete time (convert 2017-10-01 00:00:00 to 2017-10-01)
-                row[5] = datetime.strptime(row[5], "%Y-%m-%d").date()
-
-                print(f"Date: {row[5]}")
-                print(f"Time: {row[6]}")
-                print(f"Url: {row[7]}")
-                print()
-                logging.debug(f"{row}")
-        input()
 
     def races_by_name():
-        pass
+        print("\nEnter race name:")
+        choice = input("> ").lower()
+        for row in data_list:
+            if choice in row[4].lower():
+                print("---------------------------------------------------------------")
+                print(f"{'Round: ':7} {row[2]}")
+                print(f"{'Name: ':7} {row[4]}")
+                print(f"{'Date: ':7} {row[5]}")
+                print(f"{'Time: ':7} {row[6]}")
+                print(f"{'Url: ':7} {row[7]}")
+        input("\n\nENTER")
+
 
     def races_by_round():
-        pass
+        print("\nEnter round number:")
+        choice = input("> ")
+        for row in data_list:
+            if row[2] == choice:
+                print("---------------------------------------------------------------")
+                print(f"{'Round: ':7} {row[2]}")
+                print(f"{'Name: ':7} {row[4]}")
+                print(f"{'Date: ':7} {row[5]}")
+                print(f"{'Time: ':7} {row[6]}")
+                print(f"{'Url: ':7} {row[7]}")
+        input("\n\nENTER")
 
-    # races in csv file aren't sorted by year, so it needs to be sorted it manually
-    data_list.sort(key=lambda x: x[5])
 
     while True:
         clear_screen()
@@ -299,7 +361,8 @@ def races():
         print("\n\t1 - Print races by date")
         print("\t2 - Print races by name")
         print("\t3 - Print races by round")
-        
+        print("\n\t0 - Back")
+
         choice = input("\n\t> ")
 
         if choice == "1":
@@ -333,3 +396,11 @@ def search():
 
 
 welcome_screen()
+
+
+##############################################################################################
+# app = QApplication(sys.argv)
+# screen = Window()
+# screen.show()
+# sys.exit(app.exec_())
+##############################################################################################
